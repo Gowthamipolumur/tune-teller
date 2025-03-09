@@ -8,14 +8,37 @@ from flask_cors import CORS
 import time
 import imageio_ffmpeg  # Ensure ffmpeg is found
 
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+import tensorflow as tf
+
+# TensorFlow Memory Optimization for CPU (No GPU Required)
+physical_devices = tf.config.list_physical_devices('CPU')
+if physical_devices:
+    try:
+        tf.config.set_logical_device_configuration(
+            physical_devices[0],
+            [tf.config.LogicalDeviceConfiguration(memory_limit=256)]
+        )
+        print("✅ TensorFlow CPU memory limit set to 256MB")
+    except RuntimeError as e:
+        print(f"❌ TensorFlow CPU memory config failed: {e}")
+
+
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 CORS(app)
 
-# Load models and scaler
-cnn_model = load_model("cnn_model.h5")
+# Lazy Load Model to Conserve Memory
+cnn_model = None  # Initialize model as None
+
+def get_model():
+    global cnn_model
+    if cnn_model is None:
+        cnn_model = load_model("cnn_model.h5")  # Load model only when called
+        print("✅ Model Loaded Successfully")
+    return cnn_model
+
+# Load scaler
 scaler = joblib.load("scaler.pkl")
 
 # Class labels
@@ -54,7 +77,7 @@ def extract_features(file_path):
         audio, sample_rate = librosa.load(file_path, sr=None, mono=True)
         print(f"✅ Audio loaded: Sample Rate - {sample_rate}, Duration - {len(audio) / sample_rate}s")
 
-        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=60)
+        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)  # Reduced MFCC for memory saving
         chroma = librosa.feature.chroma_stft(y=audio, sr=sample_rate)
         mel = librosa.feature.melspectrogram(y=audio, sr=sample_rate)
 
@@ -90,6 +113,7 @@ def predict_song():
         features_scaled = scaler.transform([features])
 
         features_scaled_cnn = features_scaled.reshape(1, features_scaled.shape[1], 1)
+        cnn_model = get_model()  # Lazy model loading here
         cnn_prediction = np.argmax(cnn_model.predict(features_scaled_cnn), axis=1)[0]
 
         prediction = classes[cnn_prediction]
@@ -104,6 +128,7 @@ def predict_song():
         try:
             if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
+                print(f"🧹 Successfully deleted temporary file: {temp_file_path}")
         except Exception as cleanup_error:
             print(f"⚠️ Cleanup error: {cleanup_error}")
 
