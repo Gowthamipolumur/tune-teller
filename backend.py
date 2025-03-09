@@ -1,27 +1,18 @@
-from flask import Flask, request, jsonify
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow info/warning logs
+
+import tensorflow as tf
+
+# No GPU-specific memory settings (since Render uses CPU-only)
+print("✅ Running TensorFlow on CPU with optimized settings")
+
+from flask import Flask, request, jsonify
 import numpy as np
 import librosa
 import joblib
 from pydub import AudioSegment
 from flask_cors import CORS
-import time
-import imageio_ffmpeg  # Ensure ffmpeg is found
-
-import tensorflow as tf
-
-# TensorFlow Memory Optimization for CPU (No GPU Required)
-physical_devices = tf.config.list_physical_devices('CPU')
-if physical_devices:
-    try:
-        tf.config.set_logical_device_configuration(
-            physical_devices[0],
-            [tf.config.LogicalDeviceConfiguration(memory_limit=256)]
-        )
-        print("✅ TensorFlow CPU memory limit set to 256MB")
-    except RuntimeError as e:
-        print(f"❌ TensorFlow CPU memory config failed: {e}")
-
+import imageio_ffmpeg
 
 from tensorflow.keras.models import load_model
 
@@ -34,7 +25,7 @@ cnn_model = None  # Initialize model as None
 def get_model():
     global cnn_model
     if cnn_model is None:
-        cnn_model = load_model("cnn_model.h5")  # Load model only when called
+        cnn_model = load_model("cnn_model.h5")
         print("✅ Model Loaded Successfully")
     return cnn_model
 
@@ -45,17 +36,13 @@ scaler = joblib.load("scaler.pkl")
 classes = ["baby shark", "mary had a little lamb", "Merry Christmas",
            "Old McDonald Had a Farm", "Twinkle Twinkle", "Wheels on the Bus"]
 
-# Ensure pydub can locate ffmpeg
-AudioSegment.converter = imageio_ffmpeg.get_ffmpeg_exe()
-AudioSegment.ffprobe = imageio_ffmpeg.get_ffmpeg_exe()
-
 # Allowed audio file extensions
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'm4a', 'aac'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Function to convert any audio format to MP3
+# Convert any audio file to MP3
 def convert_to_mp3(file_path):
     try:
         extension = file_path.split('.')[-1].lower()
@@ -77,7 +64,7 @@ def extract_features(file_path):
         audio, sample_rate = librosa.load(file_path, sr=None, mono=True)
         print(f"✅ Audio loaded: Sample Rate - {sample_rate}, Duration - {len(audio) / sample_rate}s")
 
-        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)  # Reduced MFCC for memory saving
+        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
         chroma = librosa.feature.chroma_stft(y=audio, sr=sample_rate)
         mel = librosa.feature.melspectrogram(y=audio, sr=sample_rate)
 
@@ -113,7 +100,7 @@ def predict_song():
         features_scaled = scaler.transform([features])
 
         features_scaled_cnn = features_scaled.reshape(1, features_scaled.shape[1], 1)
-        cnn_model = get_model()  # Lazy model loading here
+        cnn_model = get_model()
         cnn_prediction = np.argmax(cnn_model.predict(features_scaled_cnn), axis=1)[0]
 
         prediction = classes[cnn_prediction]
