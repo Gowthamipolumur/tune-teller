@@ -119,7 +119,12 @@ def predict_song():
         except Exception as cleanup_error:
             print(f"⚠️ Cleanup error: {cleanup_error}")
 
+# Root Route to Confirm Deployment Status
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({'message': 'Tune Teller Backend is Running Successfully!'}), 200
+
 # Run the Server
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))  # Render expects port 10000
-    app.run(host='0.0.0.0', port=port) 
+    app.run(host='0.0.0.0', port=port)
