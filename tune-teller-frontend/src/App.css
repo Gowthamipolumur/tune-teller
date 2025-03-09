@@ -1,0 +1,51 @@
+.app {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+h1 {
+  color: #4CAF50;
+  margin-bottom: 20px;
+}
+
+.options {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+}
+
+.upload-section, .record-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+audio {
+  margin-top: 15px;
+  width: 100%;
+}
+
+h3 {
+  margin-top: 20px;
+  color: #4CAF50;
+}
