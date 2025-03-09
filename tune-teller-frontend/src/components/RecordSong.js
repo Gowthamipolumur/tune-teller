@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const RecordSong= () => {
+const RecordSong = () => {
     const [audioURL, setAudioURL] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [prediction, setPrediction] = useState('');
@@ -10,6 +10,7 @@ const RecordSong= () => {
     const [isRecordingActive, setIsRecordingActive] = useState(false);
 
     const navigate = useNavigate();
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     // Start Recording
     const startRecording = async () => {
@@ -57,7 +58,7 @@ const RecordSong= () => {
         formData.append('file', audioBlob, 'recording.wav');
 
         try {
-            const response = await axios.post('http://localhost:5000/predict', formData);
+            const response = await axios.post(`${BACKEND_URL}/predict`, formData);
             setPrediction(`Predicted Song: ${response.data.song_name}`);
         } catch (error) {
             console.error('Error predicting song:', error);

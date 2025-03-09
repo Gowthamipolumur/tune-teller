@@ -8,6 +8,7 @@ const UploadSong = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     // Handle file selection
     const handleFileChange = (e) => {
@@ -26,7 +27,7 @@ const UploadSong = () => {
 
         try {
             setIsLoading(true); // Show loading state
-            const response = await axios.post('http://localhost:5000/predict', formData);
+            const response = await axios.post(`${BACKEND_URL}/predict`, formData);
             setPrediction(`Predicted Song: ${response.data.song_name}`);
         } catch (error) {
             console.error('Error predicting song:', error);
