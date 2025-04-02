@@ -1,0 +1,17 @@
+# Ignore dataset folder
+data-set/
+
+# Ignore Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore model and data files
+*.h5
+*.pkl
+
+# Ignore environment variables
+.env
+
+# Ignore temporary files
+temp/
