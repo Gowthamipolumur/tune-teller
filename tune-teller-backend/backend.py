@@ -14,8 +14,14 @@ model = joblib.load("mlp_model.pkl")
 scaler = joblib.load("scaler.pkl")
 
 # Song class labels
-classes = ["baby shark", "mary had a little lamb", "Merry Christmas", 
-           "Old McDonald Had a Farm", "Twinkle Twinkle", "Wheels on the Bus"]
+classes = [
+    "baby shark",
+    "mary had a little lamb",
+    "Merry Christmas",
+    "Old McDonald Had a Farm",
+    "Twinkle Twinkle",
+    "Wheels on the Bus"
+]
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'm4a', 'aac'}
@@ -36,7 +42,9 @@ def convert_to_mp3(file_path):
 # Extract audio features
 def extract_features(file_path):
     file_path = convert_to_mp3(file_path)
-    audio, sample_rate = librosa.load(file_path, res_type='scipy')
+    
+    # Load only first 10 seconds to reduce memory
+    audio, sample_rate = librosa.load(file_path, res_type='kaiser_fast', duration=10.0)
 
     mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=60)
     mfccs_scaled = np.mean(mfccs.T, axis=0)
@@ -50,7 +58,6 @@ def extract_features(file_path):
     features = np.hstack((mfccs_scaled, chroma_scaled, mel_scaled))
     print(f"✅ Extracted Features Shape: {features.shape}")  # Should be (200,)
     return features
-
 
 # Prediction route
 @app.route('/predict', methods=['POST'])
@@ -69,12 +76,16 @@ def predict_song():
 
     try:
         features = extract_features(file_path)
+        if features.shape[0] != 200:
+            return jsonify({'error': f'Expected 200 features, got {features.shape[0]}'}), 400
+
         scaled = scaler.transform([features])
         prediction = model.predict(scaled)[0]
         song_name = classes[prediction]
         return jsonify({'song_name': song_name})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ Backend Error: {e}")
+        return jsonify({'error': f"Internal Server Error: {str(e)}"}), 500
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
