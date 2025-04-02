@@ -82,8 +82,9 @@ def predict_song():
         song_name = classes[prediction]
         return jsonify({'song_name': song_name})
     except Exception as e:
-        print(f"❌ Backend Error: {e}")
+        print(f"❌ Backend Error: {str(e)}")  # <-- print full error to logs
         return jsonify({'error': f"Internal Server Error: {str(e)}"}), 500
+
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
