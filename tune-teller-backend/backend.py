@@ -39,12 +39,11 @@ def convert_to_mp3(file_path):
         return mp3_path
     return file_path
 
-# Extract audio features
 def extract_features(file_path):
     file_path = convert_to_mp3(file_path)
     
-    # Load only first 10 seconds to reduce memory
-    audio, sample_rate = librosa.load(file_path, res_type='kaiser_fast', duration=10.0)
+    # Load only first 5 seconds to save memory
+    audio, sample_rate = librosa.load(file_path, res_type='kaiser_fast', duration=5.0)
 
     mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=60)
     mfccs_scaled = np.mean(mfccs.T, axis=0)
@@ -56,7 +55,6 @@ def extract_features(file_path):
     mel_scaled = np.mean(mel.T, axis=0)
 
     features = np.hstack((mfccs_scaled, chroma_scaled, mel_scaled))
-    print(f"✅ Extracted Features Shape: {features.shape}")  # Should be (200,)
     return features
 
 # Prediction route
