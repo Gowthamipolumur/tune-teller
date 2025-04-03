@@ -6,3 +6,4 @@ librosa
 pydub
 joblib
 flask-cors
+resampy
