@@ -27,16 +27,15 @@ classes = [
     "Wheels on the Bus"
 ]
 
-# Extract features from in-memory audio blob
 def extract_features_from_blob(audio_bytes):
     try:
-        # Convert blob to mp3 using pydub
-        sound = AudioSegment.from_file(BytesIO(audio_bytes), format="wav")
+        # Let pydub autodetect format using ffmpeg
+        sound = AudioSegment.from_file(BytesIO(audio_bytes))  # remove format="wav"
         mp3_io = BytesIO()
         sound.export(mp3_io, format="mp3")
         mp3_io.seek(0)
 
-        # Load using librosa (first 5 seconds)
+        # Load into librosa
         audio, sample_rate = librosa.load(mp3_io, sr=None, res_type='kaiser_fast', duration=5.0)
 
         mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=60)
