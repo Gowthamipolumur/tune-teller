@@ -1,0 +1,8 @@
+﻿Flask
+gunicorn
+numpy
+scikit-learn
+librosa
+pydub
+joblib
+flask-cors
