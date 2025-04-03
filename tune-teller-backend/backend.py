@@ -10,8 +10,14 @@ app = Flask(__name__)
 CORS(app)
 
 # Load MLP classifier and scaler
-model = joblib.load("mlp_model.pkl")
-scaler = joblib.load("scaler.pkl")
+#model = joblib.load("mlp_model.pkl")
+
+model_path = os.path.join(os.path.dirname(__file__), "mlp_model.pkl")
+model = joblib.load(model_path)
+
+scaler_path = os.path.join(os.path.dirname(__file__), "scaler.pkl")
+scaler = joblib.load(scaler_path)
+#scaler = joblib.load("scaler.pkl")
 
 # Song class labels
 classes = [
